@@ -1,0 +1,112 @@
+/* ==========================================================================
+   FNB LOGGER - EMPLOYEE PORTAL SPECIFIC STYLES
+   ========================================================================== */
+
+.employee-portal-card {
+  text-align: center;
+}
+
+.employee-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.employee-greeting {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.employee-info-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.clock-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.btn-clock {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-size: 1.125rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all 0.2s ease;
+}
+
+.btn-clock:active {
+  transform: scale(0.98);
+}
+
+.btn-clock-in {
+  background: var(--fnb-teal-gradient);
+  color: #ffffff;
+}
+
+.btn-clock-in:hover {
+  opacity: 0.95;
+  box-shadow: 0 6px 16px rgba(0, 150, 136, 0.35);
+}
+
+.btn-clock-out {
+  background: var(--fnb-orange-gradient);
+  color: #ffffff;
+}
+
+.btn-clock-out:hover {
+  opacity: 0.95;
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+}
+
+.clock-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.clock-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.clock-arrow {
+  font-size: 1.25rem;
+  opacity: 0.8;
+}
+
+.btn-leave-trigger {
+  background: #f8fafc;
+  border: 1px solid var(--border-color);
+  color: #334155;
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.875rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+.btn-leave-trigger:hover {
+  background: #f1f5f9;
+}
+

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FNB Logsheet System - Corporate Access Portal</title>
+  <meta name="description" content="Secure Geolocation Attendance, Floor Time Tracking and Leave Management System for First National Bank (FNB).">
+  <link rel="icon" type="image/jpeg" href="shared/images/fnb-logo.jpg">
+  
+  <!-- Base Stylesheet -->
+  <link rel="stylesheet" href="shared/css/base.css">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    .auth-wrapper {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1.5rem 1rem;
+    }
+    .auth-footer {
+      margin-top: 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .auth-toggle-link {
+      color: var(--fnb-teal);
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .auth-toggle-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="auth-wrapper">
+    <div class="portal-container" style="width: 100%;">
+      
+      <div class="fnb-card">
+        <!-- Logo & Header -->
+        <header class="fnb-header-logo">
+          <div class="logo-circle">
+            <img src="shared/images/fnb-logo.jpg" alt="First National Bank (FNB) Logo">
+          </div>
+          <h1 class="fnb-title" id="authTitle">FNB <span>Logsheet System</span></h1>
+          <p class="fnb-subtitle" id="authSubtitle">Enter your credentials to access workspace logging.</p>
+        </header>
+
+        <!-- Status Alerts -->
+        <div id="authAlert" class="alert hidden" role="alert"></div>
+
+        <!-- LOGIN FORM -->
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label for="loginEmail" class="form-label">Work Email Address</label>
+            <input type="email" id="loginEmail" class="form-input" placeholder="name@fnb.co.za" required autocomplete="email">
+          </div>
+          
+          <div class="form-group">
+            <label for="loginPassword" class="form-label">Password</label>
+            <input type="password" id="loginPassword" class="form-input" placeholder="••••••••" required autocomplete="current-password">
+          </div>
+          
+          <button type="submit" id="btnLogin" class="btn btn-teal" style="margin-top: 0.5rem;">
+            Authenticate Login
+          </button>
+          
+          <p class="auth-footer">
+            New employee? <a class="auth-toggle-link" onclick="toggleAuthMode(false)">Create access account</a>
+          </p>
+        </form>
+
+        <!-- REGISTRATION FORM -->
+        <form id="registerForm" class="hidden" novalidate>
+          <div class="grid-2">
+            <div class="form-group">
+              <label for="regFirst" class="form-label">First Name</label>
+              <input type="text" id="regFirst" class="form-input" placeholder="Thapelo" required autocomplete="given-name">
+            </div>
+            <div class="form-group">
+              <label for="regLast" class="form-label">Last Name</label>
+              <input type="text" id="regLast" class="form-input" placeholder="Mohale" required autocomplete="family-name">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="regEmail" class="form-label">Work Email Address</label>
+            <input type="email" id="regEmail" class="form-input" placeholder="name@fnb.co.za" required autocomplete="email">
+          </div>
+          
+          <div class="form-group">
+            <label for="regPassword" class="form-label">Create Password</label>
+            <input type="password" id="regPassword" class="form-input" placeholder="Create strong password" required autocomplete="new-password">
+          </div>
+          
+          <button type="submit" id="btnRegister" class="btn btn-teal" style="margin-top: 0.5rem;">
+            Submit Registration
+          </button>
+          
+          <p class="auth-footer">
+            Already have an access profile? <a class="auth-toggle-link" onclick="toggleAuthMode(true)">Log in instead</a>
+          </p>
+        </form>
+
+      </div>
+
+      <!-- Legal Footnote -->
+      <footer class="auth-footer">
+        <p>&copy; 2026 First National Bank &bull; A division of FirstRand Bank Limited</p>
+        <p>Authorized Financial Services and Registered Credit Provider</p>
+      </footer>
+
+    </div>
+  </main>
+
+  <!-- Global Spinner Component -->
+  <div id="globalSpinner" class="spinner-overlay hidden">
+    <div class="spinner"></div>
+    <div class="spinner-text" id="globalSpinnerText">Processing request...</div>
+  </div>
+
+  <!-- Shared Scripts -->
+  <script src="shared/js/api.js"></script>
+  <script src="auth/auth.js"></script>
+</body>
+</html>
+

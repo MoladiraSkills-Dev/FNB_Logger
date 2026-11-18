@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FNB Staff Attendance - Employee Access Portal</title>
+  <meta name="description" content="Employee Geolocation Attendance Logging & Leave Registration Portal for First National Bank (FNB).">
+  <link rel="icon" type="image/jpeg" href="../shared/images/fnb-logo.jpg">
+  
+  <!-- Base Stylesheet -->
+  <link rel="stylesheet" href="../shared/css/base.css">
+  <!-- Employee Portal Stylesheet -->
+  <link rel="stylesheet" href="employee.css">
+  
+  <!-- Inter Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <main class="portal-container">
+    <div class="fnb-card employee-portal-card">
+      
+      <!-- Top Branding -->
+      <div class="fnb-header-logo" style="margin-bottom: 1rem;">
+        <div class="logo-circle" style="width: 64px; height: 64px;">
+          <img src="../shared/images/fnb-logo.jpg" alt="FNB Logo">
+        </div>
+        <span class="badge badge-teal">Verified Employee Workspace</span>
+      </div>
+
+      <header class="employee-header">
+        <h1 class="employee-greeting" id="employeeGreeting">Welcome Employee!</h1>
+        <p class="fnb-subtitle" id="employeeEmail">employee@fnb.co.za</p>
+        <button onclick="handleLogout()" class="btn btn-secondary btn-sm" style="margin-top: 0.75rem;">
+          Sign Out
+        </button>
+      </header>
+
+      <!-- Alert Box -->
+      <div id="employeeAlert" class="alert hidden" role="alert"></div>
+
+      <p class="employee-info-note">
+        Your device GPS telemetry is required for shift verification. Please ensure browser location is authorized.
+      </p>
+
+      <!-- Shift Clock In & Clock Out Buttons -->
+      <div class="clock-actions-grid">
+        <button onclick="triggerClock('Clock In')" class="btn-clock btn-clock-in" id="btnClockIn">
+          <div class="clock-content">
+            <span class="clock-icon">⏰</span>
+            <span>Clock In</span>
+          </div>
+          <span class="clock-arrow">➔</span>
+        </button>
+
+        <button onclick="triggerClock('Clock Out')" class="btn-clock btn-clock-out" id="btnClockOut">
+          <div class="clock-content">
+            <span class="clock-icon">🚪</span>
+            <span>Clock Out</span>
+          </div>
+          <span class="clock-arrow">➔</span>
+        </button>
+      </div>
+
+      <!-- Leave Request Trigger -->
+      <button onclick="openLeaveModal()" class="btn-leave-trigger" id="btnOpenLeaveModal">
+        <span>📅</span> Request Leave
+      </button>
+
+      <!-- Standard Floor Info -->
+      <div style="margin-top: 1.5rem; padding: 0.75rem; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--border-color); font-size: 0.75rem; color: var(--text-muted);">
+        <strong>Standard Hours:</strong> 08:00 – 17:00 (Mon–Fri) &bull; 08:00 – 13:00 (Sat)<br>
+        1 hour lunch deduction applies on standard shifts.
+      </div>
+
+    </div>
+  </main>
+
+  <!-- LEAVE REGISTRATION MODAL -->
+  <div id="leaveModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="leaveModalTitle">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h2 class="modal-title" id="leaveModalTitle"><span>📅</span> Register Leave Request</h2>
+        <button type="button" class="modal-close" onclick="closeLeaveModal()" aria-label="Close Modal">&times;</button>
+      </div>
+
+      <div id="leaveModalAlert" class="alert hidden" role="alert"></div>
+
+      <form id="leaveForm" onsubmit="handleLeaveFormSubmit(event)" class="space-y-4">
+        <div class="form-group">
+          <label for="leaveType" class="form-label">Leave Type</label>
+          <select id="leaveType" class="form-select" required>
+            <option value="Annual">Annual Leave</option>
+            <option value="Sick">Sick Leave</option>
+            <option value="Family Responsibility">Family Responsibility Leave</option>
+            <option value="Unpaid">Unpaid Leave</option>
+          </select>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="leaveStartDate" class="form-label">Start Date</label>
+            <input type="date" id="leaveStartDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label for="leaveEndDate" class="form-label">End Date</label>
+            <input type="date" id="leaveEndDate" class="form-input" required>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: 1.25rem;">
+          <button type="button" onclick="closeLeaveModal()" class="btn btn-secondary">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-teal">
+            Submit Request
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Global Spinner Overlay -->
+  <div id="globalSpinner" class="spinner-overlay hidden">
+    <div class="spinner"></div>
+    <div class="spinner-text" id="globalSpinnerText">Processing telemetry...</div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../shared/js/api.js"></script>
+  <script src="../shared/js/leave.js"></script>
+  <script src="employee.js"></script>
+</body>
+</html>
+
