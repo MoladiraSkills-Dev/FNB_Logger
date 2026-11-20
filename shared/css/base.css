@@ -269,6 +269,16 @@ body {
   background: #7e22ce;
 }
 
+.btn-blue {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-blue:hover {
+  background: #1d4ed8;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
 /* Badges */
 .badge {
   display: inline-flex;

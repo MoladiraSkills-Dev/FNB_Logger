@@ -634,7 +634,7 @@ async function handleTimesheetExport(format) {
   const endDate = document.getElementById("exportEnd").value;
 
   if (email === "ALL") {
-    showAlert("exportAlert", "Single PDF/CSV exports require selecting a specific employee. To export everyone at once, use the ZIP Export button below.", "error");
+    showAlert("exportAlert", "Single PDF, Word and CSV exports require selecting a specific employee. To export everyone at once, use the ZIP Export button below.", "error");
     return;
   }
 

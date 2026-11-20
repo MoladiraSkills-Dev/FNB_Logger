@@ -1988,6 +1988,204 @@ function generateTimesheetHtml(data) {
   return html;
 }
 
+function generateTimesheetWordHtml(data) {
+  let html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" 
+      xmlns:w="urn:schemas-microsoft-com:office:word" 
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>FNB Monthly Timesheet - ${data.employeeName}</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+      mso-page-orientation: portrait;
+    }
+    body {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 10pt;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+    }
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-bottom: 3pt solid #009688;
+      margin-bottom: 16pt;
+    }
+    .header-table td {
+      border: none;
+      padding: 4pt 0 10pt 0;
+      vertical-align: middle;
+    }
+    .brand-badge {
+      background-color: #009688;
+      color: #ffffff;
+      padding: 3pt 8pt;
+      font-weight: bold;
+      font-size: 13pt;
+      letter-spacing: 1pt;
+      display: inline-block;
+    }
+    .title {
+      font-size: 16pt;
+      font-weight: bold;
+      color: #009688;
+      margin: 3pt 0 0 0;
+    }
+    .subtitle {
+      font-size: 10pt;
+      color: #64748b;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+      margin: 2pt 0 0 0;
+    }
+    .info-box {
+      font-size: 9.5pt;
+      line-height: 1.5;
+      text-align: right;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10pt;
+      margin-bottom: 16pt;
+    }
+    table.data-table th, table.data-table td {
+      border: 1pt solid #cbd5e1;
+      padding: 5pt 4pt;
+      text-align: center;
+      font-size: 8.5pt;
+    }
+    table.data-table th {
+      background-color: #f1f5f9;
+      font-weight: bold;
+      font-size: 8pt;
+      text-transform: uppercase;
+      color: #475569;
+    }
+    .week-total td {
+      background-color: #e6fffa;
+      font-weight: bold;
+      color: #00796b;
+      border-top: 1.5pt solid #009688;
+    }
+    .grand-total td {
+      background-color: #009688;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 10pt;
+    }
+    .footer-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25pt;
+    }
+    .footer-table td {
+      border: none;
+      padding: 6pt;
+      vertical-align: bottom;
+      font-size: 9.5pt;
+    }
+    .sign-line {
+      border-bottom: 1pt solid #0f172a;
+      width: 85%;
+      margin-top: 28pt;
+      margin-bottom: 4pt;
+    }
+    .company-footer {
+      margin-top: 25pt;
+      font-size: 8pt;
+      color: #94a3b8;
+      text-align: center;
+      border-top: 1pt solid #e2e8f0;
+      padding-top: 8pt;
+    }
+  </style>
+</head>
+<body>
+  <table class="header-table">
+    <tr>
+      <td style="text-align: left;">
+        <span class="brand-badge">FNB</span>
+        <div class="title">First National Bank - Work Attendance</div>
+        <div class="subtitle">Official Monthly Timesheet Report</div>
+      </td>
+      <td class="info-box">
+        <strong>Employee:</strong> ${data.employeeName}<br>
+        <strong>Month / Period:</strong> ${data.startDateStr}
+      </td>
+    </tr>
+  </table>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 12%;">Date</th>
+        <th style="width: 10%;">Day</th>
+        <th style="width: 9%;">Start Time</th>
+        <th style="width: 8%;">Lunch</th>
+        <th style="width: 9%;">End Time</th>
+        <th style="width: 10%;">Regular Hrs</th>
+        <th style="width: 10%;">Overtime Hrs</th>
+        <th style="width: 8%;">Sick Leave</th>
+        <th style="width: 8%;">Annual Leave</th>
+        <th style="width: 8%;">Family Leave</th>
+        <th style="width: 8%;">Other</th>
+      </tr>
+    </thead>
+    <tbody>
+`;
+
+  data.rows.forEach((r) => {
+    if (r.isTotal) {
+      html += `<tr class="week-total"><td colspan="5" style="text-align:left; padding-left:8pt;"><strong>${r.label}</strong></td><td><strong>${r.val}</strong></td><td colspan="5"></td></tr>`;
+    } else {
+      html += `<tr>
+        <td>${r.date}</td><td>${r.day}</td><td>${r.start}</td><td>${r.lunch}</td><td>${r.end}</td>
+        <td>${r.regStr}</td><td>${r.otStr}</td><td>${r.sick}</td><td>${r.annual}</td>
+        <td>${r.family}</td><td>${r.other}</td>
+      </tr>`;
+    }
+  });
+
+  html += `<tr class="grand-total"><td colspan="5" style="text-align:left; padding-left:8pt;"><strong>TOTAL ACCUMULATED HOURS</strong></td><td><strong>${data.grandTotalStr}</strong></td><td colspan="5"></td></tr>`;
+  html += `</tbody></table>
+
+  <table class="footer-table">
+    <tr>
+      <td style="width: 50%;">
+        <div class="sign-line"></div>
+        <strong>Employee Signature:</strong><br>Date:
+      </td>
+      <td style="width: 50%;">
+        <div class="sign-line"></div>
+        <strong>Manager / Line Supervisor:</strong><br>Date:
+      </td>
+    </tr>
+  </table>
+
+  <div class="company-footer">
+    <strong>First National Bank (FNB)</strong> &bull; A division of FirstRand Bank Limited<br>
+    Verified Geolocation Attendance & Logsheet System &bull; www.fnb.co.za
+  </div>
+</body>
+</html>`;
+  return html;
+}
+
 function exportTimesheetData(email, startDate, endDate, format) {
   try {
     const data = fetchTimesheetData(email, startDate, endDate);
@@ -2028,6 +2226,21 @@ function exportTimesheetData(email, startDate, endDate, format) {
         base64: Utilities.base64Encode(blob.getBytes()),
         filename: blob.getName(),
         mimeType: "application/pdf",
+      };
+    }
+
+    if (format === "doc" || format === "word") {
+      const wordHtml = generateTimesheetWordHtml(data);
+      const blob = Utilities.newBlob(
+        wordHtml,
+        "application/msword",
+        `${data.employeeName.replace(/\s+/g, "_")}_FNB_Timesheet.doc`,
+      );
+      return {
+        status: "success",
+        base64: Utilities.base64Encode(blob.getBytes()),
+        filename: blob.getName(),
+        mimeType: "application/msword",
       };
     }
 
