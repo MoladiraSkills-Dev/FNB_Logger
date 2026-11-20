@@ -103,6 +103,7 @@ class ScriptRunShim {
   adminUpdateUser(email, first, last, status, pass) { return this.invoke("adminUpdateUser", email, first, last, status, pass); }
   exportTimesheetData(email, start, end, format) { return this.invoke("exportTimesheetData", email, start, end, format); }
   generateTimesheetsZip(email, start, end) { return this.invoke("generateTimesheetsZip", email, start, end); }
+  exportLeaveForm(reqId, format) { return this.invoke("exportLeaveForm", reqId, format); }
 }
 
 const api = new ScriptRunShim();

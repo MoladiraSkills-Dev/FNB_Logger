@@ -507,10 +507,48 @@ function renderLeaveRequestsTable(requests) {
           <div style="font-size: 0.6875rem; color: var(--text-muted);">Applied: ${req.submittedDate}</div>
         </td>
         <td>${statusBadge}</td>
-        <td style="text-align: right; white-space: nowrap;">${actions}</td>
+        <td style="text-align: right; white-space: nowrap;">
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 4px; flex-wrap: wrap;">
+            <button onclick="downloadLeaveApplicationForm('${req.reqId}')" class="btn btn-secondary btn-sm" title="Download filled PDF leave form" style="color: var(--fnb-teal-dark);">📥 Form (PDF)</button>
+            <button onclick="downloadLeaveApplicationFormWord('${req.reqId}')" class="btn btn-secondary btn-sm" title="Download filled Word leave form" style="color: #2563eb;">📝 Form (Doc)</button>
+            ${actions}
+          </div>
+        </td>
       </tr>
     `;
   }).join("");
+}
+
+async function downloadLeaveApplicationForm(reqId) {
+  showSpinner(true, "Generating filled Leave Request Form (PDF)...");
+  try {
+    const res = await api.exportLeaveForm(reqId, "pdf");
+    showSpinner(false);
+    if (res.status === "success") {
+      triggerFileDownload(res.base64, res.mimeType, res.filename);
+    } else {
+      alert("Error generating leave form: " + (res.message || "Failed"));
+    }
+  } catch (err) {
+    showSpinner(false);
+    alert("Connection error: " + err.message);
+  }
+}
+
+async function downloadLeaveApplicationFormWord(reqId) {
+  showSpinner(true, "Generating filled Leave Request Form (Word)...");
+  try {
+    const res = await api.exportLeaveForm(reqId, "doc");
+    showSpinner(false);
+    if (res.status === "success") {
+      triggerFileDownload(res.base64, res.mimeType, res.filename);
+    } else {
+      alert("Error generating leave form: " + (res.message || "Failed"));
+    }
+  } catch (err) {
+    showSpinner(false);
+    alert("Connection error: " + err.message);
+  }
 }
 
 async function handleLeaveDecision(reqId, decision) {

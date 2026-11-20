@@ -228,6 +228,8 @@ function handleApiRequest(method, args) {
       return exportTimesheetData(args[0], args[1], args[2], args[3]);
     case "generateTimesheetsZip":
       return generateTimesheetsZip(args[0], args[1], args[2]);
+    case "exportLeaveForm":
+      return exportLeaveForm(args[0], args[1]);
     default:
       return { status: "error", message: `Unknown API method: '${method}'` };
   }
@@ -1409,6 +1411,353 @@ function adminUpdateLeaveStatus(reqId, newStatus) {
 }
 
 /* ==========================================================================
+   LEAVE FORM GENERATION & EXPORT ENGINE (Template from Leave form.pdf)
+   ========================================================================== */
+
+function fetchLeaveFormRecord(reqId) {
+  const sheet = getOrCreateSheet("Leave_Requests", [
+    "Request ID",
+    "Email",
+    "First Name",
+    "Last Name",
+    "Leave Type",
+    "Start Date",
+    "End Date",
+    "Status",
+    "Submitted Date",
+  ]);
+  const data = sheet.getDataRange().getDisplayValues();
+
+  let record = null;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === String(reqId).trim()) {
+      record = {
+        reqId: String(data[i][0]).trim(),
+        email: String(data[i][1]).trim(),
+        firstName: String(data[i][2]).trim(),
+        lastName: String(data[i][3]).trim(),
+        leaveType: String(data[i][4]).trim(),
+        startDate: String(data[i][5]).trim(),
+        endDate: String(data[i][6]).trim(),
+        status: String(data[i][7]).trim(),
+        submittedDate: String(data[i][8]).trim(),
+      };
+      break;
+    }
+  }
+  return record;
+}
+
+function generateLeaveFormHtml(rec) {
+  const isSick = rec.leaveType.toLowerCase().includes("sick");
+  const isAnnual = rec.leaveType.toLowerCase().includes("annual");
+  const isFamily = rec.leaveType.toLowerCase().includes("family");
+  const isUnpaid = rec.leaveType.toLowerCase().includes("unpaid") || rec.leaveType.toLowerCase().includes("maternity");
+
+  let html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Leave Request Form - ${rec.firstName} ${rec.lastName}</title>
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+    }
+    body {
+      font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+      font-size: 11pt;
+      color: #111827;
+      margin: 0;
+      padding: 10px;
+      line-height: 1.4;
+    }
+    .header-logo-container {
+      text-align: center;
+      margin-bottom: 25px;
+      padding-top: 10px;
+    }
+    .company-title {
+      font-size: 20pt;
+      font-weight: 800;
+      letter-spacing: 2px;
+      color: #0f172a;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .company-tagline {
+      font-size: 11pt;
+      letter-spacing: 6px;
+      color: #475569;
+      margin-top: 2px;
+      font-weight: 600;
+    }
+    .divider-line {
+      width: 140px;
+      height: 2px;
+      background: #0f172a;
+      margin: 8px auto 0 auto;
+    }
+    .form-title {
+      text-align: center;
+      font-size: 14pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 30px 0 35px 0;
+      letter-spacing: 0.5px;
+    }
+    .field-row {
+      margin-bottom: 20px;
+      font-size: 11pt;
+    }
+    .field-label {
+      font-weight: 500;
+      color: #111827;
+    }
+    .field-fill-line {
+      display: inline-block;
+      border-bottom: 1px solid #111827;
+      min-width: 320px;
+      padding: 0 8px 2px 8px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .checkbox-section {
+      margin: 28px 0 25px 0;
+    }
+    .checkbox-heading {
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .checkbox-item {
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 11pt;
+    }
+    .box-square {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 1.5px solid #111827;
+      text-align: center;
+      line-height: 17px;
+      font-weight: 900;
+      font-size: 11pt;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .box-square.checked {
+      background-color: #f1f5f9;
+      color: #000;
+    }
+    .grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1.5px solid #000000;
+      margin: 25px 0;
+    }
+    .grid-table td {
+      border: 1.5px solid #000000;
+      padding: 10px 12px;
+      font-size: 10.5pt;
+      vertical-align: middle;
+      width: 50%;
+    }
+    .cell-line {
+      border-bottom: 1px solid #000000;
+      display: inline-block;
+      width: 60%;
+      min-height: 16px;
+      padding: 0 4px;
+      font-weight: 700;
+    }
+    .comments-heading {
+      font-weight: 500;
+      margin-top: 25px;
+      margin-bottom: 6px;
+      font-size: 11pt;
+    }
+    .comments-box {
+      width: 100%;
+      min-height: 140px;
+      border: 1.5px solid #000000;
+      padding: 10px 12px;
+      box-sizing: border-box;
+      font-size: 10pt;
+      color: #334155;
+    }
+    .page-footer-table {
+      width: 100%;
+      margin-top: 45px;
+      border-collapse: collapse;
+    }
+    .page-footer-table td {
+      border: none;
+      vertical-align: top;
+      font-size: 9pt;
+      line-height: 1.45;
+      color: #1e3a8a;
+    }
+    .footer-heading {
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: #1d4ed8;
+      font-size: 9.5pt;
+    }
+    .blue-bar {
+      margin-top: 20px;
+      height: 8px;
+      background: #1d4ed8;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Company Header -->
+  <div class="header-logo-container">
+    <div style="font-size: 22pt; color: #a855f7; margin-bottom: 4px;">&#9826;</div>
+    <div class="company-title">Mol&#257;Dira</div>
+    <div class="company-tagline">SKILLS</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="form-title">Leave Request Form</div>
+
+  <!-- Employee Info -->
+  <div class="field-row">
+    <span class="field-label">Employee Name:</span>
+    <span class="field-fill-line">${rec.firstName} ${rec.lastName}</span>
+  </div>
+
+  <div class="field-row">
+    <span class="field-label">Department Name:</span>
+    <span class="field-fill-line">Operations / Staff Attendance</span>
+  </div>
+
+  <!-- Reasons Checkboxes -->
+  <div class="checkbox-section">
+    <div class="checkbox-heading">Reason for Request (Please tick appropriate box)</div>
+    
+    <div class="checkbox-item">
+      <span class="box-square ${isSick ? 'checked' : ''}">${isSick ? '&#10003;' : ''}</span>
+      <span>Sick Leave</span>
+    </div>
+    
+    <div class="checkbox-item">
+      <span class="box-square ${isAnnual ? 'checked' : ''}">${isAnnual ? '&#10003;' : ''}</span>
+      <span>Annual Leave</span>
+    </div>
+    
+    <div class="checkbox-item">
+      <span class="box-square ${isFamily ? 'checked' : ''}">${isFamily ? '&#10003;' : ''}</span>
+      <span>Family Responsibility Leave</span>
+    </div>
+    
+    <div class="checkbox-item">
+      <span class="box-square ${isUnpaid ? 'checked' : ''}">${isUnpaid ? '&#10003;' : ''}</span>
+      <span>Unpaid Leave/Maternity Leave</span>
+    </div>
+  </div>
+
+  <!-- Dates & Approvals Grid -->
+  <table class="grid-table">
+    <tr>
+      <td>Leave Start date: <span class="cell-line">${rec.startDate}</span></td>
+      <td>Leave End date: <span class="cell-line">${rec.endDate}</span></td>
+    </tr>
+    <tr>
+      <td>Employee Signature: <span class="cell-line">${rec.firstName.charAt(0)}. ${rec.lastName} (Digital)</span></td>
+      <td>Date of Application: <span class="cell-line">${rec.submittedDate}</span></td>
+    </tr>
+    <tr>
+      <td>Manager (Client Approval): <span class="cell-line"></span></td>
+      <td>Payroll Approval: <span class="cell-line"></span></td>
+    </tr>
+  </table>
+
+  <!-- Notes & Comments -->
+  <div class="comments-heading">Notes/Additional Comments</div>
+  <div class="comments-box">
+    <strong>Leave Reference:</strong> ${rec.reqId}<br>
+    <strong>Employee Email:</strong> ${rec.email}<br>
+    <strong>Application Status:</strong> ${rec.status}<br>
+    <strong>Recorded:</strong> Electronic leave record registered via FNB Attendance &amp; Leave Logger System.
+  </div>
+
+  <!-- Footer Information -->
+  <table class="page-footer-table">
+    <tr>
+      <td style="width: 33%;">
+        <div class="footer-heading">Managing Director:</div>
+        Douglas James<br>
+        011 568 4746 | 071 891 0410<br>
+        douglas@moladiraskills.co.za
+      </td>
+      <td style="width: 38%;">
+        <div class="footer-heading">Address:</div>
+        White Thorn Office Park, 606<br>
+        Kudu St, Block A6,<br>
+        Allen's Nek, Roodepoort, North,<br>
+        Roodepoort 1724
+      </td>
+      <td style="width: 29%;">
+        <div class="footer-heading">BEE Status:</div>
+        BBBEE Level 1<br><br>
+        www.moladiraskills.co.za
+      </td>
+    </tr>
+  </table>
+
+  <div class="blue-bar"></div>
+
+</body>
+</html>`;
+  return html;
+}
+
+function exportLeaveForm(reqId, format) {
+  try {
+    const rec = fetchLeaveFormRecord(reqId);
+    if (!rec) {
+      return { status: "error", message: `Leave record ${reqId} was not found.` };
+    }
+
+    const html = generateLeaveFormHtml(rec);
+    const cleanName = `${rec.firstName}_${rec.lastName}`.replace(/\s+/g, "_");
+
+    if (format === "doc" || format === "word") {
+      const blob = Utilities.newBlob(
+        html,
+        "application/msword",
+        `${cleanName}_Leave_Form_${rec.reqId}.doc`
+      );
+      return {
+        status: "success",
+        base64: Utilities.base64Encode(blob.getBytes()),
+        filename: blob.getName(),
+        mimeType: "application/msword",
+      };
+    }
+
+    // Default to PDF
+    const blob = HtmlService.createHtmlOutput(html).getAs("application/pdf");
+    blob.setName(`${cleanName}_Leave_Form_${rec.reqId}.pdf`);
+
+    return {
+      status: "success",
+      base64: Utilities.base64Encode(blob.getBytes()),
+      filename: blob.getName(),
+      mimeType: "application/pdf",
+    };
+  } catch (err) {
+    return { status: "error", message: err.toString() };
+  }
+}
+
+/* ==========================================================================
    DASHBOARD QUERY ENGINE
    ========================================================================== */
 
@@ -2186,6 +2535,204 @@ function generateTimesheetWordHtml(data) {
   return html;
 }
 
+function generateTimesheetWordHtml(data) {
+  let html = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office" 
+      xmlns:w="urn:schemas-microsoft-com:office:word" 
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>FNB Monthly Timesheet - ${data.employeeName}</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotOptimizeForBrowser/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+      mso-page-orientation: portrait;
+    }
+    body {
+      font-family: Calibri, Arial, sans-serif;
+      font-size: 10pt;
+      color: #1e293b;
+      margin: 0;
+      padding: 0;
+    }
+    .header-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-bottom: 3pt solid #009688;
+      margin-bottom: 16pt;
+    }
+    .header-table td {
+      border: none;
+      padding: 4pt 0 10pt 0;
+      vertical-align: middle;
+    }
+    .brand-badge {
+      background-color: #009688;
+      color: #ffffff;
+      padding: 3pt 8pt;
+      font-weight: bold;
+      font-size: 13pt;
+      letter-spacing: 1pt;
+      display: inline-block;
+    }
+    .title {
+      font-size: 16pt;
+      font-weight: bold;
+      color: #009688;
+      margin: 3pt 0 0 0;
+    }
+    .subtitle {
+      font-size: 10pt;
+      color: #64748b;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5pt;
+      margin: 2pt 0 0 0;
+    }
+    .info-box {
+      font-size: 9.5pt;
+      line-height: 1.5;
+      text-align: right;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10pt;
+      margin-bottom: 16pt;
+    }
+    table.data-table th, table.data-table td {
+      border: 1pt solid #cbd5e1;
+      padding: 5pt 4pt;
+      text-align: center;
+      font-size: 8.5pt;
+    }
+    table.data-table th {
+      background-color: #f1f5f9;
+      font-weight: bold;
+      font-size: 8pt;
+      text-transform: uppercase;
+      color: #475569;
+    }
+    .week-total td {
+      background-color: #e6fffa;
+      font-weight: bold;
+      color: #00796b;
+      border-top: 1.5pt solid #009688;
+    }
+    .grand-total td {
+      background-color: #009688;
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 10pt;
+    }
+    .footer-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 25pt;
+    }
+    .footer-table td {
+      border: none;
+      padding: 6pt;
+      vertical-align: bottom;
+      font-size: 9.5pt;
+    }
+    .sign-line {
+      border-bottom: 1pt solid #0f172a;
+      width: 85%;
+      margin-top: 28pt;
+      margin-bottom: 4pt;
+    }
+    .company-footer {
+      margin-top: 25pt;
+      font-size: 8pt;
+      color: #94a3b8;
+      text-align: center;
+      border-top: 1pt solid #e2e8f0;
+      padding-top: 8pt;
+    }
+  </style>
+</head>
+<body>
+  <table class="header-table">
+    <tr>
+      <td style="text-align: left;">
+        <span class="brand-badge">FNB</span>
+        <div class="title">First National Bank - Work Attendance</div>
+        <div class="subtitle">Official Monthly Timesheet Report</div>
+      </td>
+      <td class="info-box">
+        <strong>Employee:</strong> ${data.employeeName}<br>
+        <strong>Month / Period:</strong> ${data.startDateStr}
+      </td>
+    </tr>
+  </table>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th style="width: 12%;">Date</th>
+        <th style="width: 10%;">Day</th>
+        <th style="width: 9%;">Start Time</th>
+        <th style="width: 8%;">Lunch</th>
+        <th style="width: 9%;">End Time</th>
+        <th style="width: 10%;">Regular Hrs</th>
+        <th style="width: 10%;">Overtime Hrs</th>
+        <th style="width: 8%;">Sick Leave</th>
+        <th style="width: 8%;">Annual Leave</th>
+        <th style="width: 8%;">Family Leave</th>
+        <th style="width: 8%;">Other</th>
+      </tr>
+    </thead>
+    <tbody>
+`;
+
+  data.rows.forEach((r) => {
+    if (r.isTotal) {
+      html += `<tr class="week-total"><td colspan="5" style="text-align:left; padding-left:8pt;"><strong>${r.label}</strong></td><td><strong>${r.val}</strong></td><td colspan="5"></td></tr>`;
+    } else {
+      html += `<tr>
+        <td>${r.date}</td><td>${r.day}</td><td>${r.start}</td><td>${r.lunch}</td><td>${r.end}</td>
+        <td>${r.regStr}</td><td>${r.otStr}</td><td>${r.sick}</td><td>${r.annual}</td>
+        <td>${r.family}</td><td>${r.other}</td>
+      </tr>`;
+    }
+  });
+
+  html += `<tr class="grand-total"><td colspan="5" style="text-align:left; padding-left:8pt;"><strong>TOTAL ACCUMULATED HOURS</strong></td><td><strong>${data.grandTotalStr}</strong></td><td colspan="5"></td></tr>`;
+  html += `</tbody></table>
+
+  <table class="footer-table">
+    <tr>
+      <td style="width: 50%;">
+        <div class="sign-line"></div>
+        <strong>Employee Signature:</strong><br>Date:
+      </td>
+      <td style="width: 50%;">
+        <div class="sign-line"></div>
+        <strong>Manager / Line Supervisor:</strong><br>Date:
+      </td>
+    </tr>
+  </table>
+
+  <div class="company-footer">
+    <strong>First National Bank (FNB)</strong> &bull; A division of FirstRand Bank Limited<br>
+    Verified Geolocation Attendance & Logsheet System &bull; www.fnb.co.za
+  </div>
+</body>
+</html>`;
+  return html;
+}
+
 function exportTimesheetData(email, startDate, endDate, format) {
   try {
     const data = fetchTimesheetData(email, startDate, endDate);
@@ -2226,6 +2773,21 @@ function exportTimesheetData(email, startDate, endDate, format) {
         base64: Utilities.base64Encode(blob.getBytes()),
         filename: blob.getName(),
         mimeType: "application/pdf",
+      };
+    }
+
+    if (format === "doc" || format === "word") {
+      const wordHtml = generateTimesheetWordHtml(data);
+      const blob = Utilities.newBlob(
+        wordHtml,
+        "application/msword",
+        `${data.employeeName.replace(/\s+/g, "_")}_FNB_Timesheet.doc`,
+      );
+      return {
+        status: "success",
+        base64: Utilities.base64Encode(blob.getBytes()),
+        filename: blob.getName(),
+        mimeType: "application/msword",
       };
     }
 
