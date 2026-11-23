@@ -102,8 +102,10 @@ class ScriptRunShim {
   adminUpdateLeaveStatus(reqId, status) { return this.invoke("adminUpdateLeaveStatus", reqId, status); }
   adminUpdateUser(email, first, last, status, pass) { return this.invoke("adminUpdateUser", email, first, last, status, pass); }
   exportTimesheetData(email, start, end, format) { return this.invoke("exportTimesheetData", email, start, end, format); }
-  generateTimesheetsZip(email, start, end) { return this.invoke("generateTimesheetsZip", email, start, end); }
+  generateTimesheetsZip(email, start, end, format) { return this.invoke("generateTimesheetsZip", email, start, end, format); }
+  generateWordTimesheetsZip(email, start, end) { return this.invoke("generateWordTimesheetsZip", email, start, end); }
   exportLeaveForm(reqId, format) { return this.invoke("exportLeaveForm", reqId, format); }
+  extractExistingLogsToDailySummaries() { return this.invoke("extractExistingLogsToDailySummaries"); }
 }
 
 const api = new ScriptRunShim();

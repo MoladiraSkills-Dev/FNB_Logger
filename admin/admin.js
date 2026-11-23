@@ -705,10 +705,12 @@ async function handleTimesheetExport(format) {
   }
 }
 
-async function handleZipExport() {
+async function handleZipExport(format = 'pdf') {
   const email = document.getElementById("exportEmployeeSelect").value;
   const startDate = document.getElementById("exportStart").value;
   const endDate = document.getElementById("exportEnd").value;
+  const isWord = format === 'doc' || format === 'word';
+  const label = isWord ? "Word documents" : "PDF files";
 
   if (!startDate || !endDate) {
     showAlert("exportAlert", "Please select both a Start Date and an End Date.", "error");
@@ -721,15 +723,15 @@ async function handleZipExport() {
   }
 
   hideAlert("exportAlert");
-  showSpinner(true, "Bundling timesheet PDFs into ZIP archive...");
+  showSpinner(true, `Bundling timesheet ${label} into ZIP archive...`);
 
   try {
-    const res = await api.generateTimesheetsZip(email, startDate, endDate);
+    const res = await api.generateTimesheetsZip(email, startDate, endDate, isWord ? "doc" : "pdf");
     showSpinner(false);
 
     if (res.status === "success") {
       triggerFileDownload(res.base64, res.mimeType, res.filename);
-      showAlert("exportAlert", "ZIP Archive created and downloaded successfully.", "success");
+      showAlert("exportAlert", `Batch ${isWord ? 'Word' : 'PDF'} ZIP Archive created and downloaded successfully.`, "success");
     } else {
       showAlert("exportAlert", res.message || "Failed to generate ZIP archive.", "error");
     }
